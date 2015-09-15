@@ -2,4 +2,6 @@
     <string name="app_name">Aktie</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="volumen_settings">Volumen</string>
+    <string name="action_daten_aktualisieren">Aktualisieren</string>
 </resources>

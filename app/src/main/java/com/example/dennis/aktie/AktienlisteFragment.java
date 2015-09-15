@@ -4,10 +4,14 @@ import android.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +26,29 @@ public class AktienlisteFragment extends Fragment {
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_aktienlistefragment,menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_daten_aktualisieren) {
+            Toast.makeText(getActivity(), "Aktualisieren gedrückt!", Toast.LENGTH_LONG).show();
+
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
@@ -33,7 +60,7 @@ public class AktienlisteFragment extends Fragment {
         Log.w(LOG_TAG, "warning     - Meldung");
         Log.e(LOG_TAG, "error       - Meldung");
 
-        String [] aktienlisteArray = {
+        String[] aktienlisteArray = {
                 "Adidas - Kurs: 73,45 €",
                 "Allianz - Kurs: 145,12 €",
                 "BASF - Kurs: 84,27 €",
@@ -42,19 +69,21 @@ public class AktienlisteFragment extends Fragment {
                 "BMW St. - Kurs: 104,11 €",
                 "Commerzbank - Kurs: 12,47 €",
                 "Continental - Kurs: 209,94 €",
-                "Daimler - Kurs: 84,33 €"
+                "Daimler - Kurs: 84,33 €",
+                "Intel - Kurs: 123,23"
         };
+
         List<String> aktienListe = new ArrayList<>(Arrays.asList(aktienlisteArray));
 
         ArrayAdapter<String> aktienlisteAdapter = new ArrayAdapter<>(getActivity(),
-                R.layout.list_item_aktienliste,R.id.list_item_aktienliste_textview,aktienListe);
+                R.layout.list_item_aktienliste, R.id.list_item_aktienliste_textview, aktienListe);
 
-        View rootView =  inflater.inflate(R.layout.fragment_aktienliste, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_aktienliste, container, false);
 
         ListView aktienlisteListView = (ListView) rootView.findViewById(R.id.listview_aktienliste);
         aktienlisteListView.setAdapter(aktienlisteAdapter);
 
-        return  rootView;
+        return rootView;
     }
 
 
