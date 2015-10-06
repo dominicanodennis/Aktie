@@ -101,32 +101,28 @@ public class AktienlisteFragment extends Fragment {
     // Innere Klasse HoleDatenTask führt den asynchronen Task auf eigenem Arbeitsthread aus
     public class HoleDatenTask extends AsyncTask<String, Integer, String[]> {
 
-        private final String LOG_TAG = HoleDatenTask.class.getSimpleName();
+
 
         @Override
         protected String[] doInBackground(String... strings) {
 
-            String[] ergebnisArray = new String[20];
-
-            for (int i = 0; i < 20; i++) {
-
-                // Den StringArray füllen wir mit Beispieldaten
-                ergebnisArray[i] = strings[0] + "_" + (i + 1);
-
-                // Alle 5 Elemente geben wir den aktuellen Fortschritt bekannt
-                if (i % 5 == 4) {
-                    publishProgress(i + 1, 20);
-                }
-
-                // Mit Thread.sleep(600) simulieren wir eine Wartezeit von 600 ms
-                try {
-                    Thread.sleep(600);
-                } catch (Exception e) {
-                    Log.e(LOG_TAG, "Error ", e);
-                }
+            if(strings.length==0){
+                return  null;
             }
+            // Exakt so muss die Anfrage-URL an die YQL Platform gesendet werden:
+  /*
+  https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url
+  %3D'http%3A%2F%2Fdownload.finance.yahoo.com%2Fd%2Fquotes.csv%3Fs%3D
+  BMW.DE%2CDAI.DE%2C%255EGDAXI%26f%3Dsnc4xl1d1t1c1p2ohgv%26e%3D.csv'%20and%20columns%3D'
+  symbol%2Cname%2Ccurrency%2Cexchange%2Cprice%2Cdate%2Ctime%2Cchange%2Cpercent%2C
+  open%2Chigh%2Clow%2Cvolume'&diagnostics=true";
+  */
+            // Wir konstruieren die Anfrage-URL für die YQL Platform
+            final String URL_PARAMETER = "https://query.yahooapis.com/v1/public/yql";
+            final String SELECTOR = "select%20*%20from%20csv%20where%20";
 
-            return ergebnisArray;
+
+            return new String[0];
         }
 
         @Override
@@ -157,4 +153,27 @@ public class AktienlisteFragment extends Fragment {
                     Toast.LENGTH_SHORT).show();
         }
     }
+   /* class prozess extends AsyncTask<String,Integer, String[]>{
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String[] doInBackground(String... params) {
+            publishProgress();
+            return new String[0];
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+        }
+
+        @Override
+        protected void onPostExecute(String[] strings) {
+            super.onPostExecute(strings);
+        }
+    }*/
 }
