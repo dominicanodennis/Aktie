@@ -14,15 +14,27 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -89,6 +101,7 @@ public class AktienlisteFragment extends Fragment {
                 "Intel - Kurs: 123,23"
         };
 
+
         List<String> aktienListe = new ArrayList<>(Arrays.asList(aktienlisteArray));
 
         mAktienlisteAdapter =
@@ -106,6 +119,58 @@ public class AktienlisteFragment extends Fragment {
 
     // Innere Klasse HoleDatenTask führt den asynchronen Task auf eigenem Arbeitsthread aus
     public class HoleDatenTask extends AsyncTask<String, Integer, String[]> {
+
+        private String[] leseXmlAktiendatenAus(String xmlString){
+
+            Document doc;
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            try {
+                DocumentBuilder db = dbf.newDocumentBuilder();
+                InputSource is = new InputSource();
+                is.setCharacterStream(new StringReader(xmlString));
+                doc = db.parse(is);
+            }catch (ParserConfigurationException e){
+                Log.e(LOG_TAG, "Error: " + e.getMessage());
+                return  null;
+            }catch (SAXException e){
+                Log.e(LOG_TAG, "Error: " + e.getMessage());
+                return null;
+            }catch (IOException e){
+                Log.e(LOG_TAG,"Error: "+ e.getMessage());
+                return  null;
+            }
+
+            Element xmlAktiendaten = doc.getDocumentElement();
+            NodeList aktienListe = xmlAktiendaten.getElementsByTagName("row");
+
+            int anzahlAktien = aktienListe.getLength();
+            int anzahlAktienParameter = aktienListe.item(0).getChildNodes().getLength();
+
+            String[] ausgabeArray = new String[anzahlAktien];
+            String[][] alleAktienDatenArray = new String[anzahlAktien][anzahlAktienParameter];
+
+            Node aktienparameter;
+            String aktienparameterWert;
+            for (int i = 0; i<anzahlAktien;i++){
+                NodeList aktienParameterliste = aktienListe.item(i).getChildNodes();
+                for (int j = 0; j<anzahlAktienParameter;j++){
+                    aktienparameter = aktienParameterliste.item(j);
+                    aktienparameterWert = aktienparameter.getFirstChild().getNodeValue();
+                    alleAktienDatenArray[i][j] = aktienparameterWert;
+                }
+
+                ausgabeArray[i]  = alleAktienDatenArray[i][0];                // symbol
+                ausgabeArray[i] += ": " + alleAktienDatenArray[i][4];         // price
+                ausgabeArray[i] += " " + alleAktienDatenArray[i][2];          // currency
+                ausgabeArray[i] += " (" + alleAktienDatenArray[i][8] + ")";   // percent
+                ausgabeArray[i] += " - [" + alleAktienDatenArray[i][1] + "]"; // name
+
+                Log.v(LOG_TAG,"XML Output:" + ausgabeArray[i]);
+            }
+            return ausgabeArray;
+
+
+        }
 
 
         @Override
@@ -151,7 +216,9 @@ public class AktienlisteFragment extends Fragment {
             BufferedReader bufferedReader = null;
 
             // In diesen String speichern wir die Aktiendaten im XML-Format
+
             String aktiendatenXmlString = "";
+
 
             try {
                 URL url = new URL(anfrageString);
@@ -194,7 +261,8 @@ public class AktienlisteFragment extends Fragment {
 
             // Hier parsen wir später die XML Aktiendaten
 
-            return null;
+
+            return leseXmlAktiendatenAus(aktiendatenXmlString);
         }
 
         @Override
