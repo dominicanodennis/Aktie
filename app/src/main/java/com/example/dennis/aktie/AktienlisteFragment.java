@@ -1,6 +1,7 @@
 package com.example.dennis.aktie;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,6 +11,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -41,8 +43,9 @@ import javax.xml.parsers.ParserConfigurationException;
  */
 public class AktienlisteFragment extends Fragment {
 
+
     ArrayAdapter<String> mAktienlisteAdapter;
-    String LOG_TAG = AktienlisteFragment.class.getSimpleName();
+
 
     public AktienlisteFragment() {
     }
@@ -51,6 +54,7 @@ public class AktienlisteFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+
     }
 
     @Override
@@ -81,6 +85,7 @@ public class AktienlisteFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        String LOG_TAG = AktienlisteFragment.class.getSimpleName();
 
         Log.v(LOG_TAG, "verbose     - Meldung");
         Log.d(LOG_TAG, "debug       - Meldung");
@@ -104,15 +109,31 @@ public class AktienlisteFragment extends Fragment {
 
         List<String> aktienListe = new ArrayList<>(Arrays.asList(aktienlisteArray));
 
+//        HoleDatenTask holeDatenTask = new HoleDatenTask();
+//        holeDatenTask.execute("Aktie");
+
         mAktienlisteAdapter =
                 new ArrayAdapter<>(
                         getActivity(),
                         R.layout.list_item_aktienliste, R.id.list_item_aktienliste_textview, aktienListe);
 
+
         View rootView = inflater.inflate(R.layout.fragment_aktienliste, container, false);
 
         ListView aktienlisteListView = (ListView) rootView.findViewById(R.id.listview_aktienliste);
         aktienlisteListView.setAdapter(mAktienlisteAdapter);
+
+        aktienlisteListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                String aktienInfo = (String) adapterView.getItemAtPosition(position);
+                //  Toast.makeText(getActivity(),aktienInfo,Toast.LENGTH_SHORT).show();
+
+                Intent aktiendetailIntent = new Intent(getActivity(), AktiendetailActivity.class);
+                aktiendetailIntent.putExtra(Intent.EXTRA_TEXT, aktienInfo);
+                startActivity(aktiendetailIntent);
+            }
+        });
 
         return rootView;
     }
@@ -120,7 +141,9 @@ public class AktienlisteFragment extends Fragment {
     // Innere Klasse HoleDatenTask führt den asynchronen Task auf eigenem Arbeitsthread aus
     public class HoleDatenTask extends AsyncTask<String, Integer, String[]> {
 
-        private String[] leseXmlAktiendatenAus(String xmlString){
+        private final String LOG_TAG = HoleDatenTask.class.getSimpleName();
+
+        private String[] leseXmlAktiendatenAus(String xmlString) {
 
             Document doc;
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -129,47 +152,54 @@ public class AktienlisteFragment extends Fragment {
                 InputSource is = new InputSource();
                 is.setCharacterStream(new StringReader(xmlString));
                 doc = db.parse(is);
-            }catch (ParserConfigurationException e){
-                Log.e(LOG_TAG, "Error: " + e.getMessage());
-                return  null;
-            }catch (SAXException e){
+            } catch (ParserConfigurationException e) {
                 Log.e(LOG_TAG, "Error: " + e.getMessage());
                 return null;
-            }catch (IOException e){
-                Log.e(LOG_TAG,"Error: "+ e.getMessage());
-                return  null;
+            } catch (SAXException e) {
+                Log.e(LOG_TAG, "Error: " + e.getMessage());
+                return null;
+            } catch (IOException e) {
+                Log.e(LOG_TAG, "Error: " + e.getMessage());
+                return null;
             }
 
             Element xmlAktiendaten = doc.getDocumentElement();
             NodeList aktienListe = xmlAktiendaten.getElementsByTagName("row");
 
-            int anzahlAktien = aktienListe.getLength();
-            int anzahlAktienParameter = aktienListe.item(0).getChildNodes().getLength();
+//            if(aktienListe == null){
+             //   return null;
+         //   }else {
 
-            String[] ausgabeArray = new String[anzahlAktien];
-            String[][] alleAktienDatenArray = new String[anzahlAktien][anzahlAktienParameter];
 
-            Node aktienparameter;
-            String aktienparameterWert;
-            for (int i = 0; i<anzahlAktien;i++){
-                NodeList aktienParameterliste = aktienListe.item(i).getChildNodes();
-                for (int j = 0; j<anzahlAktienParameter;j++){
-                    aktienparameter = aktienParameterliste.item(j);
-                    aktienparameterWert = aktienparameter.getFirstChild().getNodeValue();
-                    alleAktienDatenArray[i][j] = aktienparameterWert;
+                int anzahlAktien = aktienListe.getLength();
+
+                int anzahlAktienParameter = aktienListe.item(0).getChildNodes().getLength();
+
+                String[] ausgabeArray = new String[anzahlAktien];
+                String[][] alleAktienDatenArray = new String[anzahlAktien][anzahlAktienParameter];
+
+                Node aktienparameter;
+                String aktienparameterWert;
+                for (int i = 0; i < anzahlAktien; i++) {
+                    NodeList aktienParameterliste = aktienListe.item(i).getChildNodes();
+                    for (int j = 0; j < anzahlAktienParameter; j++) {
+                        aktienparameter = aktienParameterliste.item(j);
+                        aktienparameterWert = aktienparameter.getFirstChild().getNodeValue();
+                        alleAktienDatenArray[i][j] = aktienparameterWert;
+                    }
+
+                    ausgabeArray[i] = alleAktienDatenArray[i][0];                // symbol
+                    ausgabeArray[i] += ": " + alleAktienDatenArray[i][4];         // price
+                    ausgabeArray[i] += " " + alleAktienDatenArray[i][2];          // currency
+                    ausgabeArray[i] += " (" + alleAktienDatenArray[i][8] + ")";   // percent
+                    ausgabeArray[i] += " - [" + alleAktienDatenArray[i][1] + "]"; // name
+
+                    Log.v(LOG_TAG, "XML Output:" + ausgabeArray[i]);
                 }
 
-                ausgabeArray[i]  = alleAktienDatenArray[i][0];                // symbol
-                ausgabeArray[i] += ": " + alleAktienDatenArray[i][4];         // price
-                ausgabeArray[i] += " " + alleAktienDatenArray[i][2];          // currency
-                ausgabeArray[i] += " (" + alleAktienDatenArray[i][8] + ")";   // percent
-                ausgabeArray[i] += " - [" + alleAktienDatenArray[i][1] + "]"; // name
+                return ausgabeArray;
 
-                Log.v(LOG_TAG,"XML Output:" + ausgabeArray[i]);
-            }
-            return ausgabeArray;
-
-
+          //  }
         }
 
 
@@ -195,7 +225,7 @@ public class AktienlisteFragment extends Fragment {
             final String DOWNLOAD_URL = "http://download.finance.yahoo.com/d/quotes.csv";
             final String DIAGNOSTICS = "'&diagnostics=true";
 
-            String symbols = "BMW.DE,DAI.DE,^GDAXI";
+            String symbols = "BMW.DE,DAI.DE,^GDAXI,SAP.DE";
             symbols = symbols.replace("^", "%255E");
             String parameters = "snc4xl1d1t1c1p2ohgv";
             String columns = "symbol,name,currency,exchange,price,date,time," +
@@ -226,6 +256,7 @@ public class AktienlisteFragment extends Fragment {
                 // Aufbau der Verbindung zur YQL Platform
                 httpURLConnection = (HttpURLConnection) url.openConnection();
 
+
                 InputStream inputStream = httpURLConnection.getInputStream();
 
                 if (inputStream == null) { // Keinen Aktiendaten-Stream erhalten, daher Abbruch
@@ -241,7 +272,7 @@ public class AktienlisteFragment extends Fragment {
                     return null;
                 }
                 Log.v(LOG_TAG, "Aktiendaten XML-String: " + aktiendatenXmlString);
-                publishProgress(1,1);
+                publishProgress(1, 1);
 
             } catch (IOException e) { // Beim Holen der Daten trat ein Fehler auf, daher Abbruch
                 Log.e(LOG_TAG, "Error ", e);
@@ -258,8 +289,6 @@ public class AktienlisteFragment extends Fragment {
                     }
                 }
             }
-
-            // Hier parsen wir später die XML Aktiendaten
 
 
             return leseXmlAktiendatenAus(aktiendatenXmlString);
@@ -291,7 +320,9 @@ public class AktienlisteFragment extends Fragment {
             // Hintergrundberechnungen sind jetzt beendet, darüber informieren wir den Benutzer
             Toast.makeText(getActivity(), "Aktiendaten vollständig geladen!",
                     Toast.LENGTH_SHORT).show();
+
         }
+
     }
 }
 
@@ -319,27 +350,22 @@ public class AktienlisteFragment extends Fragment {
 
 
 
-   /* class prozess extends AsyncTask<String,Integer, String[]>{
-
+  /*  class Process extends AsyncTask<String,String,Long>{
         @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
+        protected Long doInBackground(String... params) {
+            return null;
         }
 
         @Override
-        protected String[] doInBackground(String... params) {
-            publishProgress();
-            return new String[0];
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
+        protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
         }
 
         @Override
-        protected void onPostExecute(String[] strings) {
-            super.onPostExecute(strings);
+        protected void onPostExecute(Long aLong) {
+            super.onPostExecute(aLong);
         }
-    }*/
+    }
+*/
+
 
