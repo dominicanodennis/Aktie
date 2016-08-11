@@ -166,40 +166,36 @@ public class AktienlisteFragment extends Fragment {
             Element xmlAktiendaten = doc.getDocumentElement();
             NodeList aktienListe = xmlAktiendaten.getElementsByTagName("row");
 
-//            if(aktienListe == null){
-             //   return null;
-         //   }else {
 
+            int anzahlAktien = aktienListe.getLength();
 
-                int anzahlAktien = aktienListe.getLength();
+            int anzahlAktienParameter = aktienListe.item(0).getChildNodes().getLength();
 
-                int anzahlAktienParameter = aktienListe.item(0).getChildNodes().getLength();
+            String[] ausgabeArray = new String[anzahlAktien];
+            String[][] alleAktienDatenArray = new String[anzahlAktien][anzahlAktienParameter];
 
-                String[] ausgabeArray = new String[anzahlAktien];
-                String[][] alleAktienDatenArray = new String[anzahlAktien][anzahlAktienParameter];
-
-                Node aktienparameter;
-                String aktienparameterWert;
-                for (int i = 0; i < anzahlAktien; i++) {
-                    NodeList aktienParameterliste = aktienListe.item(i).getChildNodes();
-                    for (int j = 0; j < anzahlAktienParameter; j++) {
-                        aktienparameter = aktienParameterliste.item(j);
-                        aktienparameterWert = aktienparameter.getFirstChild().getNodeValue();
-                        alleAktienDatenArray[i][j] = aktienparameterWert;
-                    }
-
-                    ausgabeArray[i] = alleAktienDatenArray[i][0];                // symbol
-                    ausgabeArray[i] += ": " + alleAktienDatenArray[i][4];         // price
-                    ausgabeArray[i] += " " + alleAktienDatenArray[i][2];          // currency
-                    ausgabeArray[i] += " (" + alleAktienDatenArray[i][8] + ")";   // percent
-                    ausgabeArray[i] += " - [" + alleAktienDatenArray[i][1] + "]"; // name
-
-                    Log.v(LOG_TAG, "XML Output:" + ausgabeArray[i]);
+            Node aktienparameter;
+            String aktienparameterWert;
+            for (int i = 0; i < anzahlAktien; i++) {
+                NodeList aktienParameterliste = aktienListe.item(i).getChildNodes();
+                for (int j = 0; j < anzahlAktienParameter; j++) {
+                    aktienparameter = aktienParameterliste.item(j);
+                    aktienparameterWert = aktienparameter.getFirstChild().getNodeValue();
+                    alleAktienDatenArray[i][j] = aktienparameterWert;
                 }
 
-                return ausgabeArray;
+                ausgabeArray[i] = alleAktienDatenArray[i][0];                // symbol
+                ausgabeArray[i] += ": " + alleAktienDatenArray[i][4];         // price
+                ausgabeArray[i] += " " + alleAktienDatenArray[i][2];          // currency
+                ausgabeArray[i] += " (" + alleAktienDatenArray[i][8] + ")";   // percent
+                ausgabeArray[i] += " - [" + alleAktienDatenArray[i][1] + "]"; // name
 
-          //  }
+                Log.v(LOG_TAG, "XML Output:" + ausgabeArray[i]);
+            }
+
+            return ausgabeArray;
+
+            //  }
         }
 
 
